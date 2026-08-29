@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="EHDataStructurelib.vcxproj" Id="d35fa067-c50c-4cd0-bdf8-4e29f2a2775c" />
+</Solution>
