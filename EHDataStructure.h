@@ -203,11 +203,12 @@ namespace eh {
 
 		T& operator[](int index);
 		//插入
-		void emplaceback(const T& buffer);
+		void prepend(const T& buffer);
+		void append(const T& buffer);
 		void insert(int index, const T& buffer);
 		void remove(int index);
 		void clear();
-		size_t size();
+		size_t size() const;
 
 	private:
 		class Node
@@ -262,7 +263,16 @@ namespace eh {
 	}
 
 	template<typename T>
-	void list<T>::emplaceback(const T& buffer)
+	inline void list<T>::prepend(const T& buffer)
+	{
+		Node* new_ptr = new Node(buffer);
+		new_ptr->next = head_ptr;
+		head_ptr = new_ptr;
+		++m_size;
+	}
+
+	template<typename T>
+	void list<T>::append(const T& buffer)
 	{
 		Node* new_ptr = new Node(buffer);
 		tail_ptr->next = new_ptr;
@@ -303,10 +313,11 @@ namespace eh {
 		Node* del_ptr = last_ptr->next;
 		last_ptr->next = del_ptr->next;
 		free(del_ptr);
+		--m_size;
 	}
 
 	template<typename T>
-	inline size_t list<T>::size()
+	inline size_t list<T>::size() const
 	{
 		return m_size;
 	}
