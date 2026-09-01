@@ -3,10 +3,9 @@
 
 int main()
 {
-	eh::list<int> l;
-	for (int i = 0; i < 10; ++i)
-		l.append(i);
-	l.insert(0, 100);
-	for (int i = 0; i < 11; ++i)
-		std::cout << l[i] << std::endl;
+	eh::string s("Hello");
+	eh::string n("World");
+	std::cout << s << std::endl;
+	std::cout << n << std::endl;
+	std::cout << s+n << std::endl;
 }
