@@ -1,5 +1,6 @@
 #pragma once
 #include<iostream>
+#include<cstring>
 /*
 sort
 String
@@ -79,22 +80,38 @@ namespace sort
 };
 
 namespace eh {
-
+	//——————————————————
+	//      字符串
+	//——————————————————
 	class string
 	{
 	private:
 		char* m_buffer;
 		size_t m_size;
+		string(const int& size);
 	public:
 		string(const char* string);//constructor
 		~string();
 		string(const string& other); //copyconstructor
+		string& operator=(const string& other);
+		string(string&& other) noexcept; //move
+		string& operator=(string&& other);
 
 		char& operator[](unsigned const int index);
+		const char& operator[](unsigned const int index) const;
+		string operator+(const string& other);
 
 		friend std::ostream& operator<<(std::ostream& stream, const string& str);
 	};
 	std::ostream& operator<<(std::ostream& stream, const string& str); //<<运算符重载
+
+	string::string(const int& size)
+	{
+		m_size = size;
+		m_buffer = new char[m_size + 1];
+		memset(m_buffer, '0', m_size);
+		m_buffer[m_size] = '\0';
+	}
 
 	string::string(const char* string)
 	{
@@ -116,10 +133,49 @@ namespace eh {
 		memcpy(m_buffer, other.m_buffer, m_size + 1);
 	}
 
+	string& string::operator=(const string& other)
+	{
+		if (this == &other)
+			return *this;
+		char* newstring = new char[other.m_size + 1];
+		memcpy(newstring, other.m_buffer, m_size + 1);
+		delete[] m_buffer;
+		m_size = other.m_size;
+		m_buffer = newstring;
+	}
+
+	string::string(string&& other) noexcept
+		:m_size(other.m_size), m_buffer(other.m_buffer)
+	{
+		other.m_buffer = nullptr;//置空
+	}
+
+	string& string::operator=(string&& other)
+	{
+		if (this == &other)
+			return *this;
+		delete[] m_buffer;
+		m_buffer = other.m_buffer;
+		m_size = other.m_size;
+		other.m_buffer = nullptr;
+		other.m_size = 0;
+	}
 
 	char& string::operator[](unsigned const int index)
 	{
 		return m_buffer[index];
+	}
+	const char& string::operator[](unsigned const int index) const
+	{
+		return m_buffer[index];
+	}
+
+	string string::operator+(const string& other)
+	{
+		string result(m_size + other.m_size);
+		memcpy(result.m_buffer, m_buffer, m_size);//第一段复制
+		memcpy(result.m_buffer + m_size, other.m_buffer, other.m_size);//第二段复制
+		return result;
 	}
 
 	std::ostream& operator<<(std::ostream& stream, const string& str)
@@ -128,7 +184,9 @@ namespace eh {
 		return stream;
 	}
 
-
+	//——————————————————
+	//      数组
+	//——————————————————
 	template<typename Type, size_t m_size>
 	class array
 	{
@@ -193,15 +251,23 @@ namespace eh {
 			}
 		}
 	}
-
+	//——————————————————
+	//      单链表
+	//——————————————————
 	template<typename T>
 	class list
 	{
 	public:
 		list();
 		~list();
+		
+		list(const list& other);
+		list& operator=(const list& other);
+		list(list&& other);
+		list* operator=(list&& other);
 
 		T& operator[](int index);
+
 		//插入
 		void prepend(const T& buffer);
 		void append(const T& buffer);
@@ -211,9 +277,8 @@ namespace eh {
 		size_t size() const;
 
 	private:
-		class Node
+		struct Node
 		{
-		public:
 			Node(const T& buffer)
 				:m_buffer(buffer), next(nullptr)
 			{}
@@ -263,7 +328,7 @@ namespace eh {
 	}
 
 	template<typename T>
-	inline void list<T>::prepend(const T& buffer)
+	void list<T>::prepend(const T& buffer)
 	{
 		Node* new_ptr = new Node(buffer);
 		new_ptr->next = head_ptr;
@@ -312,17 +377,70 @@ namespace eh {
 		}
 		Node* del_ptr = last_ptr->next;
 		last_ptr->next = del_ptr->next;
-		free(del_ptr);
+		delete del_ptr;
 		--m_size;
 	}
 
 	template<typename T>
-	inline size_t list<T>::size() const
+	size_t list<T>::size() const
 	{
 		return m_size;
 	}
+	//——————————————————
+	//      二叉树
+	//——————————————————
+	template<typename T>
+	class binarytree_list
+	{
+	public:
+		binarytree_list();
+		~binarytree_list();
+		void add(int index, const T& buffer);
+		void remove(int index);
+		void clear();
+		
+
+	private:
+		struct BTNode
+		{
+			BTNode(const T& m_buffer)
+			{
+				data = m_buffer;
+			}
+			T data;
+			BTNode* lchild;
+			BTNode* rchild;
+		};
+
+		BTNode* root;
+	};
+
+	template<typename T>
+	binarytree_list<T>::binarytree_list()
+	{	
+		root = new BTNode;
+	}
+
+	template<typename T>
+	binarytree_list<T>::~binarytree_list()
+	{
+		//delete
+	}
+
+	template<typename T>
+	void binarytree_list<T>::add(int index, const T& m_buffer)
+	{
+		BTNode* new_ptr = new BTNode(m_buffer);
+	}
+
+
+	//——————————————————
+	//      矩阵
+	//——————————————————
+
 
 	class Matrix
+
 	{
 	private:
 		size_t m_row;
@@ -332,18 +450,22 @@ namespace eh {
 		Matrix(const size_t& row, const size_t& col);
 		~Matrix();
 		//重载（）运算符
-		int& operator()(unsigned const int& row, unsigned const int& col) const;
+		int& operator()(unsigned const int& row, unsigned const int& col);
+		const int& operator()(unsigned const int& row, unsigned const int& col) const;
 		//深拷贝
-		Matrix(const Matrix& other) = delete;
+		Matrix(const Matrix& other); //deep copy
+		Matrix& operator=(const Matrix& other);
+		Matrix(Matrix&& other); //move
+		Matrix& operator=(Matrix&& other);
 
 		//矩阵加法
-		Matrix* operator+(const Matrix& other);
+		Matrix operator+(const Matrix& other) const;
 		//矩阵减法
-		Matrix* operator-(const Matrix& other);
+		Matrix operator-(const Matrix& other) const;
 		//矩阵乘法
-		Matrix* operator*(const Matrix& other);
+		Matrix operator*(const Matrix& other) const;
 		//转置
-		Matrix* Transform();
+		Matrix Transform();
 		//打印矩阵
 		void Print();
 	};
@@ -352,6 +474,7 @@ namespace eh {
 		:m_row(row), m_col(col)
 	{
 		m_matrix = new int[m_row * m_col];
+		memset(m_matrix, 0, row * col * sizeof(int)); //初始化内存
 	}
 
 	Matrix::~Matrix()
@@ -359,7 +482,7 @@ namespace eh {
 		delete[] m_matrix;
 	}
 
-	int& Matrix::operator()(unsigned const int& row, unsigned const int& col) const
+	int& Matrix::operator()(unsigned const int& row, unsigned const int& col)
 	{
 #ifdef P_DEBUG
 		if (row >= m_row || col >= m_col)
@@ -368,72 +491,134 @@ namespace eh {
 		return m_matrix[m_col * row + col];
 	}
 
-	Matrix* Matrix::operator+(const Matrix& other)
+	const int& Matrix::operator()(unsigned const int& row, unsigned const int& col) const
+	{
+#ifdef P_DEBUG
+		if (row >= m_row || col >= m_col)
+			throw std::invalid_argument("索引超出数组大小");
+#endif
+		return m_matrix[m_col * row + col];
+	}
+
+	Matrix::Matrix(const Matrix& other)
+		:m_row(other.m_row), m_col(other.m_col)
+	{
+		m_matrix = new int[m_row * m_col];
+		memcpy(m_matrix, other.m_matrix, m_row * m_col * sizeof(int));
+	}
+
+	Matrix& Matrix::operator=(const Matrix& other)
+	{
+		if (this == &other) //自赋值
+			return *this;
+
+		int* newMatrix = new int[m_row * m_col];
+		memcpy(m_matrix, other.m_matrix, m_row * m_col * sizeof(int));
+		delete[] m_matrix;
+
+		m_matrix = newMatrix;
+		m_row = other.m_row;
+		m_col = other.m_col;
+	}
+
+	Matrix::Matrix(Matrix&& other)
+		:m_row(other.m_row), m_col(other.m_col)
+	{
+		m_matrix = other.m_matrix;
+		other.m_matrix = nullptr;
+	}
+
+	Matrix& Matrix::operator=(Matrix&& other)
+	{
+		if (this == &other) //自赋值
+			return *this;
+
+		delete[] m_matrix;
+		m_matrix = other.m_matrix;
+		other.m_matrix = nullptr;
+		m_row = other.m_row;
+		m_col = other.m_col;
+		other.m_row = 0;
+		other.m_row = 0;
+	}
+
+	Matrix Matrix::operator+(const Matrix& other) const
 	{
 #ifdef P_DEBUG
 		if (m_row != other.m_row || m_col != other.m_col)
 			throw std::invalid_argument("矩阵维度不匹配，无法相加");
 #endif
-		Matrix* m = new Matrix(m_row, m_col);
+		Matrix m(m_row, m_col);
 		for (int i = 0; i < m_row; ++i)
 		{
 			for (int j = 0; j < m_col; ++j)
 			{
-				(*m)(i, j) = (*this)(i, j) + other(i, j);
+				m(i, j) = (*this)(i, j) + other(i, j);
 			}
 		}
 		return m;
 	}
 
-	Matrix* Matrix::operator-(const Matrix& other)
+	Matrix Matrix::operator-(const Matrix& other) const
 	{
 #ifdef P_DEBUG
 		if (m_row != other.m_row || m_col != other.m_col)
 			throw std::invalid_argument("矩阵维度不匹配，无法相减");
 #endif
-		Matrix* m = new Matrix(m_row, m_col);
+		Matrix m(m_row, m_col);
 		for (int i = 0; i < m_row; ++i)
 		{
 			for (int j = 0; j < m_col; ++j)
 			{
-				(*m)(i, j) = (*this)(i, j) - other(i, j);
+				m(i, j) = (*this)(i, j) - other(i, j);
 			}
 		}
 		return m;
 	}
 
-	Matrix* Matrix::operator*(const Matrix& other)
+	Matrix Matrix::operator*(const Matrix& other) const
 	{
 #ifdef P_DEBUG
 		if (m_col != other.m_row)
 			throw std::invalid_argument("矩阵无法相乘");
 #endif
-		Matrix* m = new Matrix(m_row, other.m_col);
+		Matrix m(m_row, other.m_col);
 		for (int i = 0; i < m_row; ++i)//row
 		{
 			for (int j = 0; j < other.m_col; ++j)//col
 			{
-				(*m)(i, j) = 0;
+				m(i, j) = 0;
 				for (int x = 0; x < m_col; ++x)
 				{
-					(*m)(i, j) += (*this)(i, x) * other(x, j);
+					m(i, j) += (*this)(i, x) * other(x, j);
 				}
 			}
 		}
 		return m;
 	}
 
-	Matrix* Matrix::Transform()
+	Matrix Matrix::Transform()
 	{
-		Matrix* m = new Matrix(m_col, m_row);
-		for (int i = 0; i < m_col; ++i)
+		Matrix m(m_col, m_row);
+		for (int i = 0; i < m_row; ++i)//行
 		{
-			for (int j = 0; j < m_col; ++j)
+			for (int j = 0; j < m_col; ++j)//列
 			{
-				(*m)(j, i) = (*this)(i, j);
+				m(j, i) = (*this)(i, j);
 			}
 		}
 		return m;
 	}
 
+	void Matrix::Print()
+	{
+		for (int i = 0; i < m_row; ++i)//行
+		{
+			for (int j = 0; j < m_col; ++j)//列
+			{
+				std::cout << (*this)(i, j);
+			}
+			printf('\0');
+		}
+	}
 }
