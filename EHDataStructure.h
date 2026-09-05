@@ -3,9 +3,11 @@
 #include<cstring>
 /*
 sort
-String
+string
+vector
 array
-Vector
+binarysearchtree
+graph
 Matrix
 */
 namespace sort
@@ -183,9 +185,180 @@ namespace eh {
 		stream << str.m_buffer;
 		return stream;
 	}
+	//——————————————————
+	//    动态数组
+	//——————————————————
+
+	template<typename T, typename compare = std::less<T>>
+	class vector
+	{
+	private:
+		T* m_data;
+		size_t m_capacity;
+		size_t m_size;
+	public:
+		vector();
+		vector(size_t capacity);
+		~vector();
+		vector(const vector& other);
+		vector& operator=(const vector& other);
+		vector(vector&& other);
+		vector& operator=(vector&& other);
+
+		void push_back(const T& buffer);
+		void reserve(size_t size);
+		void remove(size_t index);
+		void insert(size_t index, const T& buffer);
+
+		size_t size() { return m_size; }
+		size_t capacity() { return m_capacity; }
+
+		//void sort(compare com = compare())
+	};
+
+	template<typename T, typename compare>
+	inline vector<T, compare>::vector()
+		:m_data(nullptr), m_capacity(0), m_size(0)
+	{}
+
+	template<typename T, typename compare>
+	inline vector<T, compare>::vector(size_t capacity)
+		: m_capacity(capacity), m_size(0)
+	{
+		reserve(capacity);
+	}
+
+	template<typename T, typename compare>
+	inline vector<T, compare>::~vector()
+	{
+		delete[] m_data;
+	}
+
+	template<typename T, typename compare>
+	inline vector<T, compare>::vector(const vector& other)
+		:m_capacity(other.m_capacity), m_size(other.m_size)
+	{
+		m_data = new T[m_capacity];
+		for (int i = 0; i < m_size; ++i)
+		{
+			m_data[i] = other.m_data[i];
+		}
+	}
+
+	template<typename T, typename compare>
+	inline vector<T, compare>& vector<T, compare>::operator=(const vector& other)
+	{
+		if (this == &other)
+			return *this;
+		delete[] m_data;
+		m_capacity = other.m_capacity;
+		m_size = other.m_size;
+		m_data = new T[m_capacity];
+		for (int i = 0; i < m_size; ++i)
+		{
+			m_data[i] = other.m_data[i];
+		}
+		return *this;
+	}
+
+	template<typename T, typename compare>
+	inline vector<T, compare>::vector(vector&& other)
+		:m_capacity(other.m_capacity), m_size(other.m_size)
+	{
+		m_data = other.m_data;
+		other.m_data = nullptr;
+		other.m_capacity = 0;
+		other.m_size = 0;
+	}
+
+	template<typename T, typename compare>
+	inline vector<T, compare>& vector<T, compare>::operator=(vector&& other)
+	{
+		if (this == &other)
+			return *this;
+		delete[] m_data;
+		m_data = other.m_data;
+		m_capacity = other.m_capacity;
+		m_size = other.m_size;
+		other.m_data = nullptr;
+		other.m_capacity = 0;
+		other.m_size = 0;
+		return *this;
+	}
+
+	template<typename T, typename compare>
+	inline void vector<T, compare>::push_back(const T& buffer)
+	{
+		if (m_size == m_capacity)
+		{
+			reserve(m_capacity + 1);
+			m_data[m_size] = buffer;
+			++m_size;
+		}
+		else
+		{
+			m_data[m_size] = buffer;
+			++m_size;
+		}
+	}
+
+	template<typename T, typename compare>
+	inline void vector<T, compare>::reserve(size_t size)
+	{
+		if (!m_data)
+		{
+			m_data = new T[size];
+		}
+		else
+		{
+			T* new_data = new T[size];
+			for (int i = 0; i < m_size; ++i)
+			{
+				new_data[i] = m_data[i];
+			}
+			delete[] m_data;
+			m_data = new_data;
+		}
+		m_capacity = size;
+	}
+
+	template<typename T, typename compare>
+	inline void vector<T, compare>::remove(size_t index)
+	{
+		for (int i = index; i < m_size - 1; ++i)
+		{
+			m_data[i] = m_data[i + 1];
+		}
+		m_data[m_size - 1].~T();
+		--m_size;
+	}
+
+	template<typename T, typename compare>
+	inline void vector<T, compare>::insert(size_t index, const T& buffer)
+	{
+		if (m_capacity == m_size)
+		{
+			reserve(m_capacity + 1);
+			for (int i = m_size; i > index; --i)
+			{
+				m_data[i] = m_data[i - 1];
+			}
+			m_data[index] = buffer;
+			++m_size;
+		}
+		else
+		{
+			for (int i = m_size; i > index; --i)
+			{
+				m_data[i] = m_data[i - 1];
+			}
+			m_data[index] = buffer;
+			++m_size;
+		}
+	}
 
 	//——————————————————
-	//      数组
+	//    静态数组
 	//——————————————————
 	template<typename Type, size_t m_size>
 	class array
@@ -260,7 +433,7 @@ namespace eh {
 	public:
 		list();
 		~list();
-		
+
 		list(const list& other);
 		list& operator=(const list& other);
 		list(list&& other);
@@ -389,56 +562,158 @@ namespace eh {
 	//——————————————————
 	//      二叉树
 	//——————————————————
-	template<typename T>
-	class binarytree_list
+	template<typename T, typename Compare = std::less<T>>
+	class BinarySearchTree
 	{
-	public:
-		binarytree_list();
-		~binarytree_list();
-		void add(int index, const T& buffer);
-		void remove(int index);
-		void clear();
-		
-
 	private:
-		struct BTNode
+		struct Node
 		{
-			BTNode(const T& m_buffer)
+			Node(const T& m_buffer)
+				:lchild(nullptr), rchild(nullptr)
 			{
 				data = m_buffer;
 			}
 			T data;
-			BTNode* lchild;
-			BTNode* rchild;
+			Node* lchild;
+			Node* rchild;
 		};
 
-		BTNode* root;
+		Node* root;
+		Compare less;
+
+		Node* add(Node* node, const T& buffer)//用于递归
+		{
+			if (node == nullptr)
+				return new Node(buffer);
+			if (less(buffer, node->data)) //向左
+				node->lchild = add(node->lchild, buffer);
+			else                          //向右
+				node->rchild = add(node->rchild, buffer);
+			return node
+		}
+		Node* remove(Node* node, const T& buffer)
+		{
+			if (node == nullptr)//未找到
+				return nullptr;
+			if (less(buffer, node->data))
+				node->lchild = remove(node->lchild, buffer);
+			else if (less(node->data, buffer))
+				node->rchild = remove(node->rchild, buffer);
+			else
+			{
+				//找到了
+				if (node->rchild == nullptr)//无右子树
+				{
+					Node* l = node->lchild;
+					delete node;
+					return l;
+				}
+				else if (node->lchild == nullptr)//无左子树
+				{
+					Node* r = node->rchild;
+					delete node;
+					return r;
+				}
+				else//双子树
+				{
+					Node* min = searchMin(node->rchild);
+					node->data = min->data;
+					//递归删除最小右子树节点
+					node->rchild = remove(node->rchild, min->data);
+				}
+			}
+			return node
+		}
+		void clear(Node* node)//递归删除
+		{
+			if (!node)
+				return;
+			clear(node->lchild);
+			clear(node->rchild);
+			delete node;
+			root = nullptr;
+		}
+	public:
+		BinarySearchTree(Compare compare = Compare());
+		~BinarySearchTree();
+
+		//BinarySearchTree(const BinarySearchTree& other);
+		//BinarySearchTree& operator=(const BinarySearchTree& other);
+		BinarySearchTree(BinarySearchTree&& other);
+		BinarySearchTree& operator=(BinarySearchTree&& other);
+
+		void add(const T& buffer) { add(root, buffer); }
+		Node* remove(const T& buffer) { remove(root, buffer); }
+		Node* searchMin(Node* node)
+		{
+			while (node->lchild)
+				node = node->lchild;
+			return node;
+		}
+		Node* searchMax(Node* node)
+		{
+			while (node->rchild)
+				node = node->rchild;
+			return node;
+		}
+		Node* DFS(Node* node, const T& target)
+		{
+			if (node->data == target)
+				return node;
+			if (node->lchild)
+				return DFS(node->lchild, target);
+			else if (node->rchild)
+				return DFS(node->rchild, target);
+			else
+				return nullptr;
+		}
+		Node* BFS(Node* node, const T& target)
+		{
+
+		}
+		void clear() { clear(root); }
 	};
 
-	template<typename T>
-	binarytree_list<T>::binarytree_list()
-	{	
-		root = new BTNode;
+	template<typename T, typename Compare>
+	inline BinarySearchTree<T, Compare>::BinarySearchTree(Compare compare)
+		: less(compare), root(nullptr)
+	{}
+
+	template<typename T, typename Compare>
+	inline BinarySearchTree<T, Compare>::~BinarySearchTree()
+	{
+		clear();
 	}
 
-	template<typename T>
-	binarytree_list<T>::~binarytree_list()
+	template<typename T, typename Compare>
+	inline BinarySearchTree<T, Compare>::BinarySearchTree(BinarySearchTree&& other)
 	{
-		//delete
+		root = other->root;
+		other->root = nullptr;
+	}
+	template<typename T, typename Compare>
+	inline BinarySearchTree<T, Compare>& BinarySearchTree<T, Compare>::operator=(BinarySearchTree&& other)
+	{
+		if (this == &other)
+			return *this;
+		root = other->root;
+		other->root = nullptr;
+		return *this;
 	}
 
-	template<typename T>
-	void binarytree_list<T>::add(int index, const T& m_buffer)
+	//——————————————————
+	//       图
+	//——————————————————
+	class graph
 	{
-		BTNode* new_ptr = new BTNode(m_buffer);
-	}
+	private:
+	public:
+	};
 
 
 	//——————————————————
 	//      矩阵
 	//——————————————————
-
-
 	class Matrix
 
 	{
@@ -450,8 +725,8 @@ namespace eh {
 		Matrix(const size_t& row, const size_t& col);
 		~Matrix();
 		//重载（）运算符
-		int& operator()(unsigned const int& row, unsigned const int& col);
-		const int& operator()(unsigned const int& row, unsigned const int& col) const;
+		int& operator()(size_t row, size_t col);
+		const int& operator()(size_t row, size_t col) const;
 		//深拷贝
 		Matrix(const Matrix& other); //deep copy
 		Matrix& operator=(const Matrix& other);
@@ -468,6 +743,8 @@ namespace eh {
 		Matrix Transform();
 		//打印矩阵
 		void Print();
+		size_t getRow() { return m_row; }
+		size_t getCol() { return m_col; }
 	};
 
 	Matrix::Matrix(const size_t& row, const size_t& col)
@@ -482,7 +759,7 @@ namespace eh {
 		delete[] m_matrix;
 	}
 
-	int& Matrix::operator()(unsigned const int& row, unsigned const int& col)
+	int& Matrix::operator()(size_t row, size_t col)
 	{
 #ifdef P_DEBUG
 		if (row >= m_row || col >= m_col)
@@ -491,7 +768,7 @@ namespace eh {
 		return m_matrix[m_col * row + col];
 	}
 
-	const int& Matrix::operator()(unsigned const int& row, unsigned const int& col) const
+	const int& Matrix::operator()(size_t row, size_t col) const
 	{
 #ifdef P_DEBUG
 		if (row >= m_row || col >= m_col)
@@ -512,13 +789,14 @@ namespace eh {
 		if (this == &other) //自赋值
 			return *this;
 
-		int* newMatrix = new int[m_row * m_col];
-		memcpy(m_matrix, other.m_matrix, m_row * m_col * sizeof(int));
+		int* newMatrix = new int[other.m_row * other.m_col];
+		memcpy(m_matrix, other.m_matrix, other.m_row * other.m_col * sizeof(int));
 		delete[] m_matrix;
 
 		m_matrix = newMatrix;
 		m_row = other.m_row;
 		m_col = other.m_col;
+		return *this;
 	}
 
 	Matrix::Matrix(Matrix&& other)
@@ -539,7 +817,8 @@ namespace eh {
 		m_row = other.m_row;
 		m_col = other.m_col;
 		other.m_row = 0;
-		other.m_row = 0;
+		other.m_col = 0;
+		return *this;
 	}
 
 	Matrix Matrix::operator+(const Matrix& other) const
@@ -618,7 +897,7 @@ namespace eh {
 			{
 				std::cout << (*this)(i, j);
 			}
-			printf('\0');
+			std::cout << '\n';
 		}
 	}
 }
